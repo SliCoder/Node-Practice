@@ -41,4 +41,4 @@ class Event extends EventEmiter {};
 // rs.pipe(ws)
 
 Event.on('click', () => console.log("Hello We are just clicking"));
-Event.emit('click')
+Event.emit('click');
