@@ -1,0 +1,14 @@
+*{
+    margin: 0;
+    box-sizing: border-box;
+}
+body{
+    background-color: #eee;
+    /* display: grid;
+    place-items: center;
+    min-height: 100vh; */
+}
+img {
+    width: 600px;
+    
+}

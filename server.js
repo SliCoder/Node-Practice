@@ -1,9 +1,14 @@
 const { createServer} = require("node:http");
 
 const path = require("node:path");
-const fs = require("node:fs")
-const fsPromise = require("node:fs/promises")
+const fs = require("node:fs");
+const fsPromise = require("node:fs/promises");
 const EventEmitter = require("node:events");
+
+const myEmitter = new EventEmitter();
+const logMessage = require("./eventLogger");
+
+myEmitter.on('log', (msg, logFile) => logMessage(msg, logFile))
 
 // const myEvent = new EventEmitter();
 
@@ -11,13 +16,17 @@ const PORT = process.env.PORT || 3000;
 
 const serveFile = async (filePath, contentType, response) => {
     try {
-        const rawData = await fsPromise.readFile(filePath, {encoding: 'utf-8'});
+        const rawData = await fsPromise.readFile(
+            filePath, 
+            !contentType.includes("image") ? 'utf-8' : ''
+        );
         let data = contentType === "application/json" ? JSON.parse(rawData) : rawData 
-        response.statusCode = 200;
+        response.statusCode = filePath.includes("404.html") ? 404 : 200;
         response.setHeader("Content-Type", contentType);
         response.end( contentType === 'application/json' ? JSON.stringify(data) : data )
     } catch (error) {
         console.log(error);
+        myEmitter.emit('log', `${err.name} : ${err.message}`, 'errorLog.txt')
         response.statusCode = 500;
         response.end();
     }
@@ -25,6 +34,7 @@ const serveFile = async (filePath, contentType, response) => {
 
 const server = createServer((req, res) =>{
     const extension = path.extname(req.url);
+    myEmitter.emit('log', `${req.url} \t ${req.method}`, "eventLog.txt")
     let content_type;
 
     switch(extension){
@@ -59,7 +69,7 @@ const server = createServer((req, res) =>{
         ? path.join(__dirname, 'view', req.url) /* Normally the html file is always at the view folder  */
         : path.join(__dirname, req.url);
 
-    // Make a .html extension not required in the url typed in the browser
+    // Make a .html extension not required in the url typed in the browse
     if(!extension && req.url.slice(-1) !== '/') fileDir += '.html';
 
     if(fs.existsSync(fileDir)){
@@ -67,17 +77,18 @@ const server = createServer((req, res) =>{
     }
     else{
         // Dealing with locators that has been redirected and also not found;
-        
-        // switch(path.basename(fileDir)){
-        //     case 'old-page.html':
-        //         res.statusCode = 301;
-        //         res.setHeader('Location', '/new-page.html');
-        //         res.end()
-        //         break;
-        //     default:
-        //         serveFile(path.join(__dirname, 'view', '404.html', res));
-        // }
-        serveFile(path.join(__dirname, 'view', '404.html'), 'text/html', res);
+
+        switch(path.basename(fileDir)){
+            case 'old-page.html':
+                res.statusCode = 301;
+                res.setHeader('Location', '/index.html');
+                res.end()
+
+                break;
+            default:
+                serveFile(path.join(__dirname, 'view', '404.html'), 'text/html', res);
+        }
+        // serveFile(path.join(__dirname, 'view', '404.html'), 'text/html', res);
     }
 });
 

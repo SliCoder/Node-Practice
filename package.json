@@ -2,7 +2,7 @@
   "name": "node-practice",
   "version": "1.0.0",
   "description": "",
-  "main": "./js/index.js",
+  "main": "server.js",
   "scripts": {
     "start": "node index",
     "dev": "nodemon index"

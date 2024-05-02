@@ -5,15 +5,14 @@ let fsPromises = require("node:fs/promises");
 let path = require("node:path");
 let fs = require("node:fs")
 
-const logMessage = async (message) => {
-    let dateTime = format(new Date(), 'yyyyMMdd\tHH:mm:ss');
-    let logMessage = `${dateTime} \t ${uuid()} \t ${message} \n`;
-    console.log(logMessage);  
+const logMessage = async (message, file) => {
+    let dateTime = format(new Date(), 'yyyy MM dd\tHH:mm:ss');
+    let logMessage = `${dateTime} \t ${uuid()} \t ${message} \n`
     try{
         if(!fs.existsSync(path.join(__dirname, 'logs'))){
-            await fsPromises.mkdir(path.join(__dirname, 'logs', 'logFile.txt'));
+            await fsPromises.mkdir(path.join(__dirname, 'logs'));
         }
-        await fsPromises.appendFile(path.join(__dirname, 'logs', 'logsFile.txt'), logMessage);
+        await fsPromises.appendFile(path.join(__dirname, 'logs', file), logMessage);
     }
     catch(error){
         console.error(error);
